@@ -34,14 +34,20 @@ def get_imports_from_file(file_path):
 # print(f"Modules imported in {file_path}: {imported_modules}")
 
 
-def traverse_directories(directory: str, exclude_patterns: List[str]):
-    pass
+def traverse_directories(dir_path: str, exclude_patterns: List[str] = None):
+    """Traverses the specified 'dir_path' recursively to traverse all the python files, excluding files that are specified by 'exclude_pattern'"""
+
+    files = []
+
+    for dirpath, dirname, filenames in os.walk(dir_path):
+        for filename in filenames:
+            if filename.endswith(".py"):
+                files.append(filename)
+
+    return files
 
 
 if __name__ == "__main__":
-    import os
+    specified_dir = input("Your specified directory: ")
 
-    for dirpath, dirname, filenames in os.walk("samples/"):
-        for filename in filenames:
-            if filename.endswith(".py"):
-                print(filename)
+    print(traverse_directories(specified_dir))
