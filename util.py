@@ -1,9 +1,19 @@
 import ast
 import os
+from pathlib import Path
 from typing import List
 
 
-def get_imports_from_file(file_path):
+def get_imports_from_file(file_path: str) -> List[str]:
+    """
+    Gets a list of module imports from a given file.
+
+    Args:
+    - file_path: The path of the file to extract imports from.
+
+    Returns:
+    - List[str]: A list of the imports extracted from the file
+    """
     with open(file_path, "r") as file:
         file_content = file.read()
 
@@ -28,26 +38,47 @@ def get_imports_from_file(file_path):
     return imports
 
 
-# Example usage:
-# file_path = "example.py"  # Path to the Python file
-# imported_modules = get_imports_from_file(file_path)
-# print(f"Modules imported in {file_path}: {imported_modules}")
+def should_exclude(path: Path, exclusions: List[str]) -> bool:
+    """
+    Checks if the given path should be excluded based on the exclusion patterns.
+
+    Args:
+    - path (Path): Path to check.
+    - exclusions (List[str]): List of exclusion patterns.
+
+    Returns:
+    - bool: True if the path matches an exclusion pattern, else False.
+    """
+    for pattern in exclusions:
+        if path.match(pattern):
+            return True
+
+    return False
 
 
-def traverse_directories(dir_path: str, exclude_patterns: List[str] = None):
-    """Traverses the specified 'dir_path' recursively to traverse all the python files, excluding files that are specified by 'exclude_pattern'"""
+def traverse_directory(directory: str, excluded_patterns: List[str]) -> List[Path]:
+    """
+    Traverses all files in the specified directory and its recursive directories,
+    printing all filenames that don't match the patterns in `exclusions`.
 
-    files = []
+    Args:
+    - directory (str): Directory to traverse.
+    - exclusions (List[str]): List of patterns to exclude.
+    """
+    base_dir = Path(directory)
+    included_files = []
 
-    for dirpath, dirname, filenames in os.walk(dir_path):
-        for filename in filenames:
-            if filename.endswith(".py"):
-                files.append(filename)
+    for curr_raw_path, dirs, files in os.walk(base_dir):
+        curr_path = Path(curr_raw_path)
 
-    return files
+        # Exclude directories if they match the exclusion patterns
+        dirs[:] = [
+            d for d in dirs if not should_exclude(curr_path / d, excluded_patterns)
+        ]
 
+        for file in files:
+            file_path = curr_path / file
+            if not should_exclude(file_path, excluded_patterns):
+                included_files.append(file_path)
 
-if __name__ == "__main__":
-    specified_dir = input("Your specified directory: ")
-
-    print(traverse_directories(specified_dir))
+    return included_files
