@@ -1,6 +1,6 @@
 # Module Purger
 
-A python `venv` module purger to purge modules that are not in use by your project, but installed in your `venv`.
+A python `venv` module purger to purge modules that are not in use by your project, but are installed in your virtual environment.
 
 Benefits include
 
