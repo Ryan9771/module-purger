@@ -1,4 +1,4 @@
-from util import traverse_directory
+from util import get_modules_from_directory
 import sys
 
 if __name__ == "__main__":
@@ -11,8 +11,8 @@ if __name__ == "__main__":
         directory = sys.argv[1]
         excluded_files = excluded_files + sys.argv[2:]
 
-    included_files = traverse_directory(
+    modules = get_modules_from_directory(
         directory=directory, excluded_patterns=excluded_files
     )
 
-    print(included_files)
+    print(modules)

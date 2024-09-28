@@ -56,7 +56,7 @@ def should_exclude(path: Path, exclusions: List[str]) -> bool:
     return False
 
 
-def traverse_directory(directory: str, excluded_patterns: List[str]) -> List[Path]:
+def traverse_directory(directory: str, excluded_patterns: List[str]) -> List[str]:
     """
     Traverses all files in the specified directory and its recursive directories,
     printing all filenames that don't match the patterns in `exclusions`.
@@ -83,3 +83,29 @@ def traverse_directory(directory: str, excluded_patterns: List[str]) -> List[Pat
                     included_files.append(file_path)
 
     return [str(file) for file in included_files]
+
+
+def get_modules_from_directory(
+    directory: str, excluded_patterns: List[str]
+) -> List[str]:
+    """
+    Orchestrates the calling of functions required to execute the program
+    """
+
+    # Gets the filepaths of all the .py files that are not excluded
+    file_paths = traverse_directory(
+        directory=directory, excluded_patterns=excluded_patterns
+    )
+
+    # Gets the modules that were imported from each file
+    modules = []
+    for file_path in file_paths:
+        try:
+            modules_from_file = get_imports_from_file(file_path=file_path)
+        except Exception as e:
+            print(f"==== Error processing file: {file_path} ====")
+            modules_from_file = []
+
+        modules += modules_from_file
+
+    return modules
