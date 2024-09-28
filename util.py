@@ -4,6 +4,59 @@ from pathlib import Path
 from typing import List
 
 
+def replace_requirements(used_modules: List[str]) -> None:
+    """
+    Creates a new requirements.txt file with the used modules.
+
+    Args:
+    - used_modules (List[str]): List of modules to include in the requirements file.
+    """
+
+    # Archives the old requirements file
+    os.rename("requirements.txt", "old-requirements.txt")
+
+    # Writes the new requirements file
+    with open("requirements.txt", "w") as file:
+        for module in used_modules:
+            file.write(f"{module}\n")
+
+
+def get_used_modules(modules: List[str], required_modules: List[str]) -> List[str]:
+    """
+    Gets modules that are not in the required modules list.
+
+    Args:
+    - modules (List[str]): List of modules to filter.
+    - required_modules (List[str]): List of modules to keep.
+
+    Returns:
+    - List[str]: List of modules that are in `modules` and `required_modules`.
+    """
+    return [
+        f"{module_name}=={version}"
+        for (module_name, version) in modules
+        if module_name in required_modules
+    ]
+
+
+def get_modules_from_requirements() -> List[str]:
+    """
+    Gets a list of tuples of (module_name, module_verisons) from the requirements.txt file.
+    """
+    with open("requirements.txt", "r") as file:
+        requirements = file.readlines()
+
+    modules = []
+    for requirement in requirements:
+        if requirement.startswith("#"):
+            continue
+
+        module_and_version = requirement.split("==")
+        modules.append((module_and_version[0], module_and_version[1].strip()))
+
+    return modules
+
+
 def get_imports_from_file(file_path: str) -> List[str]:
     """
     Gets a list of module imports from a given file.
@@ -89,7 +142,14 @@ def get_modules_from_directory(
     directory: str, excluded_patterns: List[str]
 ) -> List[str]:
     """
-    Orchestrates the calling of functions required to execute the program
+    Gets all the modules that are imported in the .py files in the specified directory.
+
+    Args:
+    - directory (str): Directory to search for .py files.
+    - excluded_patterns (List[str]): List of patterns to exclude.
+
+    Returns:
+    - List[str]: List of modules that are imported in the .py files in the directory.
     """
 
     # Gets the filepaths of all the .py files that are not excluded
@@ -109,3 +169,26 @@ def get_modules_from_directory(
         modules += modules_from_file
 
     return modules
+
+
+def module_purger(directory: str, excluded_patterns: List[str]) -> None:
+    """
+    Purges the unused modules from the requirements.txt file.
+
+    Args:
+    - directory (str): Directory to search for .py files.
+    - excluded_patterns (List[str]): List of patterns to exclude.
+    """
+    # Get the modules from the requirements.txt file
+    required_modules = get_modules_from_requirements()
+
+    # Get the modules from the directory
+    modules = get_modules_from_directory(
+        directory=directory, excluded_patterns=excluded_patterns
+    )
+
+    # Get the used modules
+    used_modules = get_used_modules(modules=modules, required_modules=required_modules)
+
+    # Replace the requirements.txt file
+    replace_requirements(used_modules=used_modules)

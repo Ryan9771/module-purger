@@ -1,4 +1,4 @@
-from util import get_modules_from_directory
+from util import module_purger
 import sys
 
 if __name__ == "__main__":
@@ -11,8 +11,4 @@ if __name__ == "__main__":
         directory = sys.argv[1]
         excluded_files = excluded_files + sys.argv[2:]
 
-    modules = get_modules_from_directory(
-        directory=directory, excluded_patterns=excluded_files
-    )
-
-    print(modules)
+    module_purger(directory=directory, excluded_patterns=excluded_files)
