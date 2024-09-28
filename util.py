@@ -79,6 +79,7 @@ def traverse_directory(directory: str, excluded_patterns: List[str]) -> List[Pat
         for file in files:
             file_path = curr_path / file
             if not should_exclude(file_path, excluded_patterns):
-                included_files.append(file_path)
+                if file.endswith(".py"):
+                    included_files.append(file_path)
 
-    return included_files
+    return [file.name for file in included_files]
