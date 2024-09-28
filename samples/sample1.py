@@ -1,5 +1,6 @@
 import numpy as np
 import requests
+from samples.sample_dir.sample_dir_1 import sample_function
 
 # Fetch data from a URL
 url = "https://api.exchangerate-api.com/v4/latest/USD"
@@ -16,5 +17,5 @@ rates_array = np.array(list(rates.values()))
 mean_rate = np.mean(rates_array)
 std_dev_rate = np.std(rates_array)
 
-print(f"Mean exchange rate: {mean_rate}")
-print(f"Standard deviation of exchange rates: {std_dev_rate}")
+# Perform sample self made function
+sample_function()

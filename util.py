@@ -82,4 +82,4 @@ def traverse_directory(directory: str, excluded_patterns: List[str]) -> List[Pat
                 if file.endswith(".py"):
                     included_files.append(file_path)
 
-    return [file.name for file in included_files]
+    return [str(file) for file in included_files]
