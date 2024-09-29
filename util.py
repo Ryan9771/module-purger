@@ -1,7 +1,7 @@
 import ast
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 
 def replace_requirements(used_modules: List[str]) -> None:
@@ -13,7 +13,7 @@ def replace_requirements(used_modules: List[str]) -> None:
     """
 
     # Archives the old requirements file
-    os.rename("requirements.txt", "old-requirements.txt")
+    os.rename("requirements.txt", "requirements-old.txt")
 
     # Writes the new requirements file
     with open("requirements.txt", "w") as file:
@@ -21,12 +21,14 @@ def replace_requirements(used_modules: List[str]) -> None:
             file.write(f"{module}\n")
 
 
-def get_used_modules(modules: List[str], required_modules: List[str]) -> List[str]:
+def get_used_modules(
+    installed_modules: List[Tuple[str, str]], used_modules: List[str]
+) -> List[str]:
     """
     Gets modules that are not in the required modules list.
 
     Args:
-    - modules (List[str]): List of modules to filter.
+    - Installed modules (List[str]): List of modules to filter.
     - required_modules (List[str]): List of modules to keep.
 
     Returns:
@@ -34,14 +36,14 @@ def get_used_modules(modules: List[str], required_modules: List[str]) -> List[st
     """
     return [
         f"{module_name}=={version}"
-        for (module_name, version) in modules
-        if module_name in required_modules
+        for (module_name, version) in installed_modules
+        if module_name in used_modules
     ]
 
 
 def get_modules_from_requirements() -> List[str]:
     """
-    Gets a list of tuples of (module_name, module_verisons) from the requirements.txt file.
+    Gets a list of tuples of installed (module_name, module_verisons) from the requirements.txt file.
     """
     with open("requirements.txt", "r") as file:
         requirements = file.readlines()
@@ -53,6 +55,8 @@ def get_modules_from_requirements() -> List[str]:
 
         module_and_version = requirement.split("==")
         modules.append((module_and_version[0], module_and_version[1].strip()))
+
+    print(f"==== Modules: {modules} ====")
 
     return modules
 
@@ -180,15 +184,17 @@ def module_purger(directory: str, excluded_patterns: List[str]) -> None:
     - excluded_patterns (List[str]): List of patterns to exclude.
     """
     # Get the modules from the requirements.txt file
-    required_modules = get_modules_from_requirements()
+    installed_modules = get_modules_from_requirements()
 
     # Get the modules from the directory
-    modules = get_modules_from_directory(
+    used_modules = get_modules_from_directory(
         directory=directory, excluded_patterns=excluded_patterns
     )
 
     # Get the used modules
-    used_modules = get_used_modules(modules=modules, required_modules=required_modules)
+    filtered_modules = get_used_modules(
+        installed_modules=installed_modules, used_modules=used_modules
+    )
 
     # Replace the requirements.txt file
-    replace_requirements(used_modules=used_modules)
+    replace_requirements(used_modules=filtered_modules)
